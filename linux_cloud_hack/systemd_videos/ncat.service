@@ -1,0 +1,63 @@
+
+# use 
+	> systemctl edit --force --full listen.service
+# It will create:
+
+ 	> /etc/systemd/system/listen.service
+ 	
+# copy inside : >>> 	
+[Unit]
+Description=netcat as service
+After=network.target
+
+[Service]
+User=yasine
+ExecStart=/usr/bin/ncat -4lk -p 4567     # check for this :  instand of ExecStart=/usr/bin/ncat -4lk -p 4567 it's better : ExecStart=/usr/bin/ncat -4lk 10.0.0.X 4567
+Restart=always
+RestartSec=3
+
+# extra to check : to bind ports 
+SocketBindAllow=
+SocketBindDeny=
+
+# to check 
+ Loopback gets blocked
+
+ If you use:
+
+ IPAddressDeny=any
+
+👉 you MUST allow localhost explicitly:
+
+IPAddressAllow=127.0.0.1
+IPAddressAllow=::1
+
+# if desired  (extra) persist across reboot.
+[Install]
+WantedBy=multi-user.target
+
+
+
+# Then:
+
+	> systemctl daemon-reload
+	> systemctl enable --now listen.service
+	
+# extra for practice:
+	
+	> systemctl edit listen.service
+#copy :
+
+[Service]
+IPAddressDeny=any
+IPAddressAllow=10.0.0.0/24
+
+
+# to view the login : 
+ > journalctl -fu listen   # listen is the service  stream the log service on terminal 
+ 
+# from another machine 
+ > ncat ip_adrr_server 4567   #  to connect 
+
+
+

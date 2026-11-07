@@ -1,0 +1,20 @@
+# run 
+
+        > sudo nano /etc/systemd/system/miniserve.service
+        
+# Paste this:        
+        
+ 
+[Unit]
+Description=Miniserve File Server
+After=network.target
+
+[Service]
+User=yasine
+WorkingDirectory=/home/yasine/Downloads
+ExecStart=/usr/local/bin/miniserve . # adapted to bath check it with which command
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

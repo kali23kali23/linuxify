@@ -1,0 +1,20 @@
+Docker can:
+
+Mount the host filesystem
+Run containers as root
+Access system devices
+Modify system files
+
+So a user in the docker group can do something like:
+
+   	> docker run -v /:/host -it alpine chroot /host
+
+👉 That command gives you full access to the host system as root.
+
+🧩 What this means in practice
+
+If your user is in docker group:
+
+You can escalate privileges without sudo
+Any compromised process running as you → can become root
+It bypasses normal Linux permission boundaries

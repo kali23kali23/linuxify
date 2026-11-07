@@ -1,0 +1,143 @@
+
+#current topology
+
+REAL NETWORK
+10.0.0.0/24
+┌─────────────────────┐
+│ Kali Host           │
+│ 10.0.0.55           │
+│ Docker Engine       │
+└─────────┬───────────┘
+          │
+          ├──────── br_public      172.16.10.0/24
+          │
+          └──────── br_corporate   10.1.0.0/24
+
+
+The key insight (this is important)
+
+Your host is acting like a router between multiple isolated domains:
+
+physical LAN (10.0.0.0/24)
+Docker DMZ (172.16.10.0/24)
+Docker internal (10.1.0.0/24)
+VMware networks (192.168.x.x)
+
+
+# What does: " docker exec -it "  actually do?
+
+When you run:
+
+	> docker exec -it p-web-02 bash
+
+You are saying:
+
+“Start a shell process INSIDE that container’s namespaces.”
+	no SSH server needed
+	Docker injects the process directly
+
+# to add kali machine in lab (optional instand of using the kali host ):
+
+		> docker run -it --name kali \
+  		   --network public \
+  		   --ip 172.16.10.100 \
+  		   --cap-add=NET_ADMIN \
+  		   --cap-add=NET_RAW \
+  		   kalilinux/kali-rolling bash
+  		   
+# how ever when exit from kali the added  container will be stoped because it attached to process id not like other machine it was by purpuse keep running so because it need 
+  
+  > docker start -ai kali  
+    or
+  > docker start kali 
+
+# plus it'm miumum version so need to install tolls 
+
+    > apt update
+    > apt install -y \
+    iproute2 \
+    iputils-ping \
+    net-tools \
+    dnsutils \
+    curl \
+    wget \
+    nano \
+    vim \
+    less \
+    procps \
+    netcat-traditional \
+    nmap \
+    tcpdump \
+    traceroute \
+    telnet \
+    ftp \
+    smbclient \
+    redis-tools \
+    mariadb-client \
+    hydra
+
+# start whwn eit 
+	> docker start -ai kali 
+	
+# to persiste the tools instaled take snapshot from the container and and save in the image 
+     > docker images                            # to see images;
+     > docker commit kali my-kali-lab           # kali= container name,    my-kali-lab  = new image name and check with 
+     > docker images  again 	how ever it dont replace it create new image so for new container need to use the new image plus the current container allways use the old image 
+     > docker run <new_image_name>
+     > docker stop <old_container_name>
+     > docker rm  <old_conteiner _name> 
+     > docker rmi <old_image_name>
+     
+     # to atach the new image to the lab with the right configuration use :
+     > docker run -it --name kali-container \
+    --network public \
+    --ip 172.16.10.100 \
+    --cap-add=NET_ADMIN \
+    --cap-add=NET_RAW \
+    my-kali-lab:latest bash
+    	# here my-kali-lab is the new image created from the commit   
+ 
+     
+     or best professional method : use dockerfile so install nesessary tools and buils the image after 
+    in dockerfile: there is screen shot explain also 
+    
+   # Assume your current image is called:
+    	my_kali_image
+	First create a directory:
+		> mkdir kali-upgrade
+		> cd kali-upgrade
+	Create a file named exactly:
+		Dockerfile
+	Put this inside:
+
+   		 FROM my_kali_image
+   		 
+   		 RUN apt-get update && \
+    		     apt-get upgrade -y && \
+    	             apt-get clean && \
+    	             rm -rf /var/lib/apt/lists/
+    	             
+    	Then, from the kali-upgrade directory, run in the terminal:
+    		> docker build -t my_kali_image:v2 .  #The . means:  "Use the current directory as the build context."
+    		
+    		my_kali_image       ← old version (backup)
+		my_kali_image:v2    ← upgraded version
+	
+
+	
+useful commandes :
+1-   docker network inspect <network_name>_you finde it inside docker_compose.yml file
+    > docker network inspect public 
+    > docker network inspect corporate
+    You’ll see:
+	all connected containers
+	IPs
+	MACs
+
+2- See routing decision path
+    > ip route get 172.16.10.12
+    This shows:
+   “which interface Linux will use”	
+   iroumy@Purpule:~$ ip route get 172.16.10.12
+   172.16.10.12 dev br_public src 172.16.10.1 uid 1000  # the interface "br_public" 
+	

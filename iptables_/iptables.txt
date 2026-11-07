@@ -1,0 +1,59 @@
+# 	USE both to flash and clean the iptables chains and rules 
+    > iptables -F 
+    > iptables -x
+    > sudo /sbin/iptables-save   #  to persist to rules  
+    > iptables -L --line-numbers
+# 
+    > iptables -I .... # the flag I : to insert in top (it metter because the order meter the system read and apply   from the top to bottom   )
+    > iptables -A......# A : APPEND IN BOTTOM 
+   
+    
+# Allow loopback (VERY important) 
+> sudo iptables -A INPUT -i lo -j ACCEPT
+
+
+# allow port 1234 to recive packets
+sudo iptables -A INPUT -p tcp --dport 1234 -j ACCEPT   # -p  for protocol 
+
+
+Final structure (clean + production-style)
+
+# allow good traffic
+sudo iptables -A INPUT -i lo -j ACCEPT  # this for local (lo)
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT  # this allow initiated connection 
+
+# allow your services (like using netcat or specific service or connection )
+sudo iptables -A INPUT -p tcp --dport 1234 -j ACCEPT
+
+# log the rest (rate-limited) to log droped packets
+	> sudo iptables -A INPUT -m limit --limit 5/min -j LOG --log-prefix "DROP: "
+	> sudo dmesg -C  this to clear  the kernel ring buffer that contain logs
+        > sudo dmesg | grep DROP  (display the logs)
+
+
+
+# drop everything else
+method 1 : 
+	> sudo iptables -P INPUT DROP  # drop as ploicy
+
+method 2:
+	> sudo iptables -A INPUT -j DROP # drop as rule
+
+# to show by number
+ 	> sudo iptables -L --line-numbers      # he output format sometimes  is just misleading  like for lo rules (to allow the internet )
+# so it's better:
+        > sudo iptables -L -v -n --line-numbers 
+        or
+        > iptables -S
+
+# to delete number 2 
+    > sudo iptables -D INPUT 2
+
+# 
+    > sudo iptables -I INPUT.....   to add to top  //  >  sudo iptables -A INPUT...... #  to append in bottom
+
+# see the rules using nftables mode 
+    > sudo nft list ruleset
+
+
+

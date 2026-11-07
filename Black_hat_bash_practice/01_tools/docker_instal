@@ -1,0 +1,23 @@
+make sure  nstall GnuPG first,  (in kali docker machine and dont use sudo  with root)
+		> apt update
+		> apt install -y gnupg curl ca-certificates
+
+
+#  >   sudo nano  /etc/apt/sources.list.d/docker.sources 
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: trixie
+Components: stable
+Architectures: amd64
+Signed-By: /etc/apt/keyrings/docker.gpg
+
+
+
+#  >   ls -l /etc/apt  # check for  folder  keyrings 
+#  >   ls -l /etc/apt/keyrings/ 
+#  >   curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+#  >   cat  /etc/apt/keyrings/docker.gpg
+#  >   sudo apt update && sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+              check for sudo if ur root  
+              

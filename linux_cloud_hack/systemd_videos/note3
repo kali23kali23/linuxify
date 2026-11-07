@@ -1,0 +1,63 @@
+# Basic usage
+  	> systemctl edit sshd
+
+This opens an editor and creates:
+
+	/etc/systemd/system/sshd.service.d/override.conf
+
+Anything you put there overrides or extends the original service.
+
+# Useful flags
+Edit full unit (not recommended unless needed)
+  	> systemctl edit --full sshd
+Copies the entire unit file into /etc/...
+You now fully control it (but lose upstream updates)
+
+# Edit user service
+	> systemctl --user edit myservice
+	
+# Viewing what you changed
+	> systemctl cat sshd	
+# Removing overrides
+	> systemctl revert sshd	
+# Create a brand new service
+	> systemctl edit --force --full myapp.service	
+	
+Quick comparison
+Command	Result
+systemctl edit sshd	          	Creates drop-in override
+systemctl edit --full sshd		Full replacement in /etc
+systemctl edit --force myapp		Create drop-in even if missing
+systemctl edit --force --full myapp	Create brand new full unit	
+
+
+How systemd loads a service
+
+systemd builds the final unit from layers (priority order):
+
+1) /etc/systemd/system/sshd.service     		   ← highest priority (full override)
+2) /etc/systemd/system/sshd.service.d/*.conf  		      ← drop-ins
+3) /lib/systemd/system/sshd.service      		   ← vendor (base file)
+
+
+# What systemctl --user edit does
+
+Default behavior (drop-in)
+	> systemctl --user edit myservice
+
+Creates:
+
+~/.config/systemd/user/myservice.service.d/override.conf
+
+Same idea as system-level:
+original unit stays unchanged
+your override is layered on top
+
+
+	> systemctl --user edit --full myservice
+
+Creates:
+
+~/.config/systemd/user/myservice.service
+
+Same logic as system-level --full.

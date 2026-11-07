@@ -1,0 +1,50 @@
+# Flush existing rules
+iptables -F
+iptables -X
+
+# Set default policies
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+
+ip6tables -P INPUT DROP
+ip6tables -P FORWARD DROP
+ip6tables -P OUTPUT ACCEPT
+
+# Allow loopback traffic
+iptables -A INPUT -i lo -j ACCEPT
+
+# Allow established and related connections
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Allow incoming SSH (port 22)
+iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+# add 9999 tcp 
+iptables -A INPUT -p tcp --dport 9999 -j ACCEPT
+# to remove it 
+iptables -D INPUT -p tcp --dport 9999 -j ACCEPT
+
+# Allow ping (ICMP)
+iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+
+# Verify your firewall
+iptables -L -v -n
+
+# To preserve your configuration after reboot:
+apt install iptables-persistent -y
+
+# enable service and start it
+systemctl status  netfilter-persistent 
+systemctl enable  netfilter-persistent 
+systemctl start  netfilter-persistent 
+
+
+# Save the rules:
+Method 1:The utility handles saving the rules to the predefined locations.
+netfilter-persistent save
+
+Method 2: manually specify where to save the rules.
+iptables-save > /etc/iptables/rules.v4in 
+
+# after saving new rules :
+netfilter-persistent reload

@@ -1,0 +1,16 @@
+# this tool use python 3.11  this why i have docker container python:3.11
+
+# 	> docker run -it --network public  python:3.11 bash  # public is host network so the tool could run in the lab newok
+or you can added later > docker network connect public friendly_dirac  
+
+#Then inside it:
+
+	> pip install pwncat-cs
+
+#installed the Python package into that container’s filesystem.
+
+#Then:
+
+	> pwncat-cs -h
+	
+	

@@ -1,0 +1,309 @@
+# Docker Containers, PID 1, Foreground Processes, and systemd Notes
+
+============================================================
+1. Why systemctl does not work inside most containers
+============================================================
+
+Most Docker containers do NOT run systemd.
+
+Normal Linux machine:
+    PID 1 = systemd
+
+Most containers:
+    PID 1 = app process / shell / entrypoint
+
+systemctl talks to systemd over DBus.
+If systemd is absent:
+
+    systemctl status ssh
+
+returns:
+
+    System has not been booted with systemd as init system
+
+Inside containers use:
+    ps
+    service
+    ss
+instead of systemctl.
+
+------------------------------------------------------------
+
+============================================================
+2. Understanding: ps -p 1 -f
+============================================================
+
+Command:
+    ps -p 1 -f
+
+Meaning:
+    ps      = show processes
+    -p 1    = show only PID 1
+    -f      = full details
+
+PID 1 is VERY important because:
+    - it is the first process started
+    - Docker tracks container lifecycle through PID 1
+
+If PID 1 exits:
+    -> container stops
+
+------------------------------------------------------------
+
+============================================================
+3. Why tail -f /dev/null is used
+============================================================
+
+Example:
+
+    /bin/sh -c "
+        service ssh restart &&
+        service cron restart &&
+        tail -f /dev/null
+    "
+
+What happens:
+    1. start ssh
+    2. start cron
+    3. keep shell alive forever
+
+Why needed:
+    Containers stop when PID 1 exits.
+
+Without tail:
+    service ssh restart
+    -> command finishes
+    -> shell exits
+    -> container exits
+
+tail -f /dev/null means:
+    "do nothing forever"
+
+It acts as a fake foreground process.
+
+------------------------------------------------------------
+
+============================================================
+4. Difference between foreground in Linux vs Docker
+============================================================
+
+NORMAL LINUX TERMINAL:
+    foreground = process attached to terminal
+
+Example:
+    bash
+      -> apache2
+
+Your shell becomes blocked.
+
+DOCKER:
+    foreground = main container process (PID 1)
+
+Example:
+    PID 1 = apache2 -DFOREGROUND
+
+No shell exists initially.
+
+When running:
+    docker exec -it container bash
+
+Docker creates ANOTHER process inside container.
+
+Now:
+    PID 1 = apache2
+    PID 57 = bash
+
+Your shell is NOT PID 1.
+
+------------------------------------------------------------
+
+============================================================
+5. Why apache2 -DFOREGROUND works
+============================================================
+
+Apache normally daemonizes itself:
+    starts
+    detaches
+    runs in background
+
+Bad for Docker because:
+    PID 1 exits
+    container stops
+
+So containers use:
+    apache2 -DFOREGROUND
+
+Meaning:
+    "stay in foreground"
+
+Now:
+    PID 1 = apache2
+
+Container lives as long as Apache lives.
+
+------------------------------------------------------------
+
+============================================================
+6. Why jumpbox container is different
+============================================================
+
+Jumpbox behaves like mini VM:
+    sshd
+    cron
+    maybe more services
+
+Docker prefers:
+    ONE main process
+
+Problem:
+    which service should become PID 1?
+
+Because multiple services exist, people use:
+
+    tail -f /dev/null
+
+to keep container alive after starting services.
+
+------------------------------------------------------------
+
+============================================================
+7. Better alternatives to tail -f /dev/null
+============================================================
+
+OPTION 1:
+    cron
+    exec sshd -D
+
+Result:
+    PID 1 = sshd
+    cron runs in background
+
+OPTION 2:
+    use supervisor
+
+Example:
+    supervisord
+    s6
+    runit
+
+Result:
+    PID 1 = supervisor
+        -> sshd
+        -> cron
+
+OPTION 3:
+    full systemd container
+    (heavy and uncommon)
+
+------------------------------------------------------------
+
+============================================================
+8. What happens if foreground service crashes
+============================================================
+
+Example:
+    PID 1 = apache2 -DFOREGROUND
+
+If apache crashes:
+    PID 1 exits
+    container exits immediately
+
+No internal restart occurs because:
+    there is no systemd/supervisor.
+
+------------------------------------------------------------
+
+============================================================
+9. How Docker auto-restart works
+============================================================
+
+Docker restarts CONTAINERS, not services.
+
+Example:
+    docker run --restart=always ...
+
+Flow:
+    apache crashes
+    -> container exits
+    -> Docker daemon detects exit
+    -> Docker starts new container
+
+------------------------------------------------------------
+
+============================================================
+10. Why tail -f /dev/null can be dangerous
+============================================================
+
+Example:
+    PID 1 = tail
+
+If sshd crashes:
+    container STILL appears running
+
+Because:
+    PID 1 is still alive
+
+Docker thinks container is healthy even though service is dead.
+
+------------------------------------------------------------
+
+============================================================
+11. Three common container models
+============================================================
+
+A) Pure Docker Model
+--------------------
+PID 1 = app
+
+app crashes
+-> container exits
+-> Docker restarts container
+
+Most common.
+
+--------------------
+
+B) Fake Keepalive Model
+-----------------------
+PID 1 = tail
+
+services run in background
+
+service crashes
+-> container still running
+
+Simple but unreliable.
+
+--------------------
+
+C) Supervisor Model
+-------------------
+PID 1 = supervisord
+
+service crashes
+-> supervisor restarts service
+
+Closer to VM behavior.
+
+------------------------------------------------------------
+
+============================================================
+12. Key Docker philosophy
+============================================================
+
+Traditional VM:
+    systemd keeps services alive
+
+Docker:
+    Docker daemon keeps containers alive
+
+Container = restartable unit
+
+Not individual processes.
+
+============================================================
+
+
+check the video:  video3_note2_related.mp4 : explain the kali container vs p-jumpbox-01 and p-web-02 
+
+

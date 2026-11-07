@@ -1,0 +1,63 @@
+# to see the service file of service
+
+    > systemctl cat service_name<ssh>
+    
+    
+
+# Check active sessions:
+     > loginctl list-sessions
+     
+     
+# notes : too add service as system level you need to add the sevice_name.service to /etc/systemd/system/ which  is owned by the root so privilege permissions are required this why it came the option of creatinig   the service as user by create  the file here :
+      > nano ~/.config/systemd/user/miniserve.service
+              or use this command 
+      > systemctl  edit --force --full --user miniserver
+      
+ paste :
+[Unit]
+Description=Miniserve (User Service)
+After=network.target
+
+[Service]
+WorkingDirectory=/home/yasine/Downloads
+ExecStart=/usr/bin/miniserve .
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target  # to link a service to system  boot process 
+
+# and to check use :
+  > systemctl cat miniserver --user    # it used above to see the service file of service
+  
+
+# Reload user daemon :
+ > systemctl --user daemon-reload
+# Step 4: Start it:
+ > systemctl --user start miniserve
+ 
+ 
+# Check:
+
+  > systemctl --user status miniserve
+
+# for all steps check the videos inside folder systemd_service 
+
+# Make it run even after logout (important)
+
+By default, user services stop when you log out.
+
+To fix that:
+  > loginctl show-user yasine   # very hopeful loginctl command (loging manager) it info about the user 
+  > sudo loginctl enable-linger yasine  # this enable the ( var : linger)  
+
+        👉 This allows your user’s systemd to run without an active login session
+
+# Logs (user version)
+journalctl --user -u miniserve -f
+
+# remember : 
+   system's  services are stored in : /etc/systemd/system/   or in  /usr/lib/systemd/system/
+   user's services are stored in : ~/.config/systemd/user/
+  
+  

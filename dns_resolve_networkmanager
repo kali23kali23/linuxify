@@ -1,0 +1,23 @@
+nmcli connection modify "HELIX205" ipv4.dns "1.1.1.1 1.0.0.1"
+nmcli connection modify "HELIX205" ipv4.ignore-auto-dns yes
+
+NetworkManager
+systemctl status NetworkManager
+nmcli device status
+nmcli connection show 
+nmcli connection show --active
+nmcli device show
+nmcli device show wlan0
+
+systemd-resolved
+
+systemctl status systemd-resolved
+resolvectl status
+# to modify dns 
+nmcli connection modify "HELIX205" ipv4.dns "1.1.1.1 1.0.0.1"
+nmcli connection modify "HELIX205" ipv4.ignore-auto-dns yes
+	or inspect and change here 
+cat  /etc/NetworkManager/system-connections/HELIX205 	
+
+resolvectl query google.com
+resolvectl flush-caches

@@ -1,0 +1,12 @@
+
+	>	apt update 
+	>	apt install -y curl unzip    # if nedded
+	>	curl -L https://github.com/RustScan/RustScan/releases/latest/download/rustscan.deb.zip   # but check the asset last one and accurate one among available ones 
+	> unzip rustscan.zip 
+	> apt install ./rustscan_2.4.1-1_amd64.deb    or the version that been downlaoded 
+	>  which rustscan  to verifie 
+	> ulimit -n 65535   # nedded if kali run inside docker (it's docker issue)
+	>rm  rustscan.tmp0-stripped   rustscan_2.4.1-1_amd64.deb  # extra but to rm  the downloaded zip 
+  
+ 
+ 

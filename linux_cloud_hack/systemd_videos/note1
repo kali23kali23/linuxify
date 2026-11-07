@@ -1,0 +1,56 @@
+  > nohup command &
+ 
+means:
+
+“Run command in the background and make sure it keeps running even if I close the terminal.”
+
+What nohup does with output
+
+When you run:
+
+nohup command &
+nohup detaches the command from the terminal
+It redirects output away from the terminal
+
+Specifically:
+
+If stdout (standard output) is not already redirected, nohup writes it to:
+
+nohup.out
+That file is created:
+In the current working directory, if writable
+Otherwise in your home directory (~/nohup.out)
+stderr (errors) is also redirected to the same place by default
+
+👉 So yes:
+
+It creates nohup.out in the current directory and sends output there instead of the terminal.
+
+
+comparison with better alternatives:
+
+
+1 -tmux (or screen)
+
+These create a persistent terminal session.
+
+Example flow:
+
+tmux
+python script.py
+# detach with Ctrl+B then D
+
+You can later reconnect:
+
+tmux attach
+
+Best for: interactive or long-running tasks
+
+
+2 - systemd services
+
+Used to run programs as managed background services.
+
+Best for: production apps, servers
+
+

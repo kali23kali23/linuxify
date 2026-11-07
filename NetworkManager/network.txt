@@ -1,0 +1,97 @@
+> resolvectl status
+
+> ls /etc/netplan 
+: display the .yaml files 
+
+> sudo cat /etc/netplan/90-NM-e9d83855-40a5-47e9-b4e1-b71bb25329bb.yaml
+ :  to read one of those files it contain valuable information   such : renderer: NetworkManager
+
+////////////////////
+
+So in your system:
+
+Interfaces → NetworkManager
+DNS → systemd-resolved
+systemd-networkd → not used
+///////////////
+
+NetworkManager command line (nmcli) :
+nmcli device status           # shows interfaces and their active profiles
+nmcli connection show         # shows all saved connections (system + user)
+nmcli connection show <name>  # shows details like IP, DNS, gateway   ----------->>>   nmcli connection show HELIX205
+
+
+///////////////////////////
+Interface wlo1 (Wi-Fi) received DNS servers
+Those DNS servers were likely provided by DHCP from your router
+NetworkManager received them
+Then it gave them to systemd-resolved
+So the real source is usually:
+Router DHCP
+   ↓
+NetworkManager
+   ↓
+systemd-resolved  this is a service check it with : sudo systemctl status systemd-resolved
+
+   ↓
+resolvectl
+
+
+Where systemd-resolved stores runtime DNS
+he resolver itself uses runtime files:
+2 files : ls -l  /run/systemd/resolve/
+/run/systemd/resolve/stub-resolv.conf
+/run/systemd/resolve/resolv.conf
+are generated dynamically by systemd-resolved and disappear after reboot.
+cat ls /run/systemd/resolve/resolv.conf
+the s link : ls -l /etc/resolv.conf : /etc/resolv.conf -> ../run/systemd/resolve/stub-resolv.conf
+
+
+
+////////////////
+
+there is the file : /etc/systemd/resolved.conf  it could be used to change DNS Configure systemd-resolved globally
+steps : sudo nano /etc/systemd/resolved.conf
+	DNS=8.8.8.8
+	FallbackDNS=1.1.1.1
+	sudo systemctl restart systemd-resolved
+	
+however : When DNS comes from DHCP via NetworkManager:
+
+👉 it overrides the DNS defined in resolved.conf.
+So this file acts mainly as:
+fallback DNS
+manual configuration if no network manager exists
+
+
+Priority order (important)
+In Ubuntu desktop the priority is typically:
+1️⃣ resolvectl manual settings (temporary)
+2️⃣ NetworkManager connection DNS
+3️⃣ DHCP DNS (from router)
+4️⃣ /etc/systemd/resolved.conf fallback
+
+So NetworkManager usually wins.
+
+so the right methode : 
+How to change DNS permanently (correct way for you)
+Since NetworkManager manages your network, the correct place is NetworkManager.
+First find your connection name:
+			>	nmcli connection show
+Then set DNS:
+			>	sudo nmcli connection modify "HELIX205" ipv4.dns "8.8.8.8 1.1.1.1"
+				sudo nmcli connection modify "HELIX205" ipv4.ignore-auto-dns yes
+				
+Then reconnect:	        >	nmcli connection down "HELIX205"
+				nmcli connection up "HELIX205"			
+
+Now check:              >	resolvectl status
+			> cat ls /run/systemd/resolve/resolv.conf  : it will have the new values because it been generated dynamically by systemd-resolved and disappear after reboot.
+			
+///////////////
+
+Files involved:
+/etc/resolv.conf → stub resolver
+/run/systemd/resolve/* → runtime generated
+/etc/systemd/resolved.conf → optional defaults
+NetworkManager configs → actual DNS source

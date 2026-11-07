@@ -1,0 +1,90 @@
+%admin ALL=(ALL) ALL
+→ “You can act as anyone”
+%sudo ALL=(ALL:ALL) ALL
+→ “You can act as anyone and any group”
+
+
+example of use : 
+		>  sudo -u user -g group command  
+		so you can perform as any user or as any group 
+		
+//////////////////////////////////\\\\\\\\\\\\\\\\\
+1) Can you check another user's sudo permissions?	
+Short answer:
+
+✅ Yes, you can — but only if you already have sudo rights
+
+Use:
+
+		 >  sudo -l -U user2
+
+👉 This tells sudo:
+
+“Show me what user2 is allowed to run”
+
+Important notes:
+You must have permission (like your current (ALL : ALL) ALL)
+Otherwise, you'll get a permission error
+Alternative (if you don't have sudo access):
+
+Then ❌ you’d need to:
+
+switch user: su - user2
+or log in as them
+and run: sudo -l
+
+////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+2) How to check groups and their members?
+
+A) List groups that exist on the system
+
+Check:
+
+		> cat /etc/group
+
+Each line looks like:
+
+group_name:x:GID:user1,user2,user3
+
+B) Find members of a specific group
+
+Example:
+
+		> getent group sudo
+
+Output:
+
+sudo:x:27:yasine,user2
+
+👉 Shows:
+
+group name: sudo
+GID: 27
+members: yasine, user2
+C) List all groups with members (cleaner way)
+		> getent group
+
+✔ Better than cat /etc/group because it works with LDAP/NSS too
+
+D) Find all users in a group (filter)
+
+Example:
+
+		> getent group developers
+
+E) Bonus: loop through groups nicely
+		> awk -F: '{ if ($4) print $1 " -> " $4 }' /etc/group
+
+👉 Shows only groups that actually have users
+		
+		
+		
+		/////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+		
+		important : >>
+		sudo /bin/bash >> open shell root even if root shell is /usr/sbin/nologin (disactivated shell)
+		
+		extra tips :
+		plus check this folder /etc/pam.d 
+				       /etc/pam.d/chsh	>>> you can find configuration inside 

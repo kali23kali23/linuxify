@@ -1,0 +1,10 @@
+# Normally, Docker's data root is something like: /var/lib/docker  # depending on the Docker storage driver/configuration.
+      - Where does Docker physically store the images/data?	
+		> docker info --format '{{.DockerRootDir}}'
+# useful command 
+		> docker system df # it show also volumes
+
+        - Volumes are persistent storage.For example, your database containers may have volumes containing database data.
+	- Check them with:
+		> docker volume ls
+	then :	> docker volume inspect <volume-name> # That will show where the volume lives.		

@@ -1,0 +1,13 @@
+#!/bin/python
+list_=[1,2,7,0,5,6,0,77,88,5]
+
+def move_zero(arr):
+    position=0
+    for i in range(len(arr)):
+        if arr[i] !=0:
+            arr[position],arr[i]=arr[i],arr[position]
+            position+=1
+    return arr
+
+print(list_)
+print(move_zero(list_))

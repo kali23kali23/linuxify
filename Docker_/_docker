@@ -1,0 +1,71 @@
+ # to display the docker images run :
+ 	> docker images
+
+in this example i have 2 images the output is :
+
+iroumy@Purpule:~$ docker images
+                                                                                                                 i Info →   U  In Use
+IMAGE                ID             DISK USAGE   CONTENT SIZE   EXTRA
+hello-world:latest   f9078146db2e       25.9kB         9.49kB    U   
+ubuntu:latest        c4a8d5503dfb        119MB         31.7MB    U   
+
+
+ # See detailed info about an image: 
+
+	> docker inspect <image_name>
+ 	> docker inspect ubuntu:latest
+
+# Check disk usage: 	 
+
+        > docker system df
+        
+ # How to remove an image:
+ must :
+      1- list images and containers with :
+     
+         > docker ps -a 
+         
+       2- then stop the container using it ID   
+       
+          > docker stop 65840c555c16(ID)
+          
+        3- Remove the container first
+        
+           > docker rm 65840c555c16
+
+        4- then delete the image 
+         > docker rmi <image_name>
+         > docker rmi hello-world:latest       
+
+
+#  > docker run <image_name> #  create conteiner from image 
+   > docker start <conteiner _name>  # start the conteiner 
+   > docker stop  <conteiner _name>  # stop the conteiner 
+   > docker rm  <conteiner _name>    # remove the conteiner 
+   
+    # to atach the new image to the lab with the right configuration use :
+     > docker run -it --name kali-container \
+    --network public \
+    --ip 172.16.10.100 \
+    --cap-add=NET_ADMIN \
+    --cap-add=NET_RAW \
+    my-kali-lab:latest bash
+    	# here my-kali-lab is the new image created from the commit     
+    	
+# using docker hub to push image there :
+	> docker tag my-kali-lab:latest 23kali/my-kali-lab:latest   #  23kali is the dockerhub acount , my-kali-lab:latest is the image 
+	# Check which account Docker CLI is using
+	> docker info | grep -i username
+	# If nothing appears, log in again:
+	> docker login  # and folow the instructions 
+	# after login in Docker CLI
+	> docker push 23kali/my-kali-lab:latest
+
+
+
+
+
+
+	>    	
+    	
+   
